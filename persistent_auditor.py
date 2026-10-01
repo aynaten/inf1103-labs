@@ -18,6 +18,12 @@ def load_inventory():
     print(f"Loaded saved inventory: total = {total}")
     return total, history
 
+def save_inventory(total, history):
+    with open(INVENTORY_FILE, "w") as f:
+        f.write(f"{total}\n")
+        f.write(",".join(str(x) for x in history) + "\n")
+    print(f"Inventory saved to {INVENTORY_FILE}")
+
 def get_valid_input():
     entry = input("Enter stock quantity (or 'quit' to stop): ").strip()
 
@@ -75,7 +81,8 @@ def main():
 
         print(f"Added {quantity} units. Tax on this delivery: {tax:.2f}. Current total: {total_inventory}")
 
-        generate_report(deliveries_processed, failed_entries, history)
+    generate_report(deliveries_processed, failed_entries, history)
+    save_inventory(total_inventory, history)
 
 
 if __name__ == "__main__":
