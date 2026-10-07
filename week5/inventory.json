@@ -22,5 +22,17 @@
     "name": "Monitor",
     "price": 299.0,
     "stock": 2
+  },
+  {
+    "id": "P005",
+    "name": "Wire",
+    "price": 2.0,
+    "stock": 10
+  },
+  {
+    "id": "P006",
+    "name": "Cable",
+    "price": 5.0,
+    "stock": 60
   }
 ]
