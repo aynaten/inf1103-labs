@@ -10,20 +10,15 @@ from abc import ABC, abstractmethod
 # ============================================================
 
 class Product(ABC):
-    # Initialise a product with its ID, name, price and stock
     def __init__(self, product_id, name, price, stock):
         self.__product_id = product_id
         self.__name = name
         self.__price = price
         self.__stock = stock
 
-    # Return the product ID without directly accessing
-    # the private attribute from outside the class
     def get_product_id(self):
         return self.__product_id
 
-    # Convert Product attributes into a dictionary for JSON saving
-    # This will be extended in Phase 5
     def to_dict(self):
         return {
             "id": self.__product_id,
@@ -32,7 +27,6 @@ class Product(ABC):
             "stock": self.__stock
         }
 
-    # Update the stock quantity of this product
     def update_stock(self, quantity):
         if quantity >= 0:
             self.__stock = quantity
@@ -40,14 +34,12 @@ class Product(ABC):
         else:
             print("Stock cannot be negative.")
 
-    # Display the product's common information
     def display_information(self):
         print(f"Product ID: {self.__product_id}")
         print(f"Name: {self.__name}")
         print(f"Price: ${self.__price:.2f}")
         print(f"Stock: {self.__stock}")
 
-    # Abstract method that all specialised products must implement
     @abstractmethod
     def get_fulfilment_info(self):
         pass
@@ -58,8 +50,6 @@ class Product(ABC):
 # ============================================================
 
 class CanBeShipped(ABC):
-
-    # Require implementing classes to calculate shipping costs
     @abstractmethod
     def calculate_shipping_cost(self):
         pass
@@ -70,25 +60,28 @@ class CanBeShipped(ABC):
 # ============================================================
 
 class PhysicalProduct(Product):
-    # Initialise a physical product with an additional weight
     def __init__(self, product_id, name, price, stock, weight):
         super().__init__(product_id, name, price, stock)
         self.__weight = weight
 
-    # Override the parent method to display additional information
     def display_information(self):
         super().display_information()
         print("Product Type: Physical")
         print(f"Weight: {self.__weight} kg")
 
-    # Explain how a physical product is delivered
     def get_fulfilment_info(self):
         return "This product requires physical shipping."
 
-    # Calculate shipping using $5 per kilogram
     def calculate_shipping_cost(self):
         shipping_rate = 5.00
         return self.__weight * shipping_rate
+
+    # Extend the parent's dictionary with physical product details
+    def to_dict(self):
+        data = super().to_dict()
+        data["type"] = "physical"
+        data["weight"] = self.__weight
+        return data
 
 
 # ============================================================
@@ -96,20 +89,24 @@ class PhysicalProduct(Product):
 # ============================================================
 
 class DigitalProduct(Product):
-    # Initialise a digital product with an additional download size
     def __init__(self, product_id, name, price, stock, download_size):
         super().__init__(product_id, name, price, stock)
         self.__download_size = download_size
 
-    # Override the parent method to display additional information
     def display_information(self):
         super().display_information()
         print("Product Type: Digital")
         print(f"Download Size: {self.__download_size} MB")
 
-    # Explain how a digital product is delivered
     def get_fulfilment_info(self):
         return "This product is delivered digitally."
+
+    # Extend the parent's dictionary with digital product details
+    def to_dict(self):
+        data = super().to_dict()
+        data["type"] = "digital"
+        data["download_size"] = self.__download_size
+        return data
 
 
 # ============================================================
@@ -124,17 +121,13 @@ CanBeShipped.register(PhysicalProduct)
 # ============================================================
 
 class Inventory:
-    # Initialise an empty inventory
     def __init__(self):
         self.__products = []
 
-    # Return the collection of products
     def get_products(self):
         return self.__products
 
-    # Add a Product object to the inventory
     def add_product(self, product):
-        # Prevent duplicate product IDs
         if self.search_product(product.get_product_id()) is not None:
             print("Product ID already exists.")
             return
@@ -142,14 +135,12 @@ class Inventory:
         self.__products.append(product)
         print("Product added successfully.")
 
-    # Search for a product using its product ID
     def search_product(self, product_id):
         for product in self.__products:
             if product.get_product_id() == product_id:
                 return product
         return None
 
-    # Display all products in the inventory
     def display_all(self):
         if not self.__products:
             print("Inventory is empty.")
@@ -160,9 +151,77 @@ class Inventory:
             product.display_information()
             print(product.get_fulfilment_info())
 
-            # Only physical products have shipping costs
             if isinstance(product, CanBeShipped):
                 print(f"Shipping Cost: ${product.calculate_shipping_cost():.2f}")
+
+
+# ============================================================
+# FILE HANDLING
+# ============================================================
+
+def save_inventory(inventory):
+    products_data = []
+
+    # Convert each product object into a dictionary
+    for product in inventory.get_products():
+        products_data.append(product.to_dict())
+
+    # Write all product dictionaries to the JSON file
+    with open("inventory.json", "w") as file:
+        json.dump(products_data, file, indent=4)
+
+    print("Inventory saved successfully.")
+
+
+def load_inventory(inventory):
+    # Start with an empty inventory if no saved file exists
+    if not os.path.exists("inventory.json"):
+        return
+
+    try:
+        with open("inventory.json", "r") as file:
+            products_data = json.load(file)
+
+        if not isinstance(products_data, list):
+            print("Invalid inventory file format.")
+            return
+
+        # Restore objects according to their saved product type
+        for data in products_data:
+            try:
+                product_type = data.get("type")
+
+                if product_type == "physical":
+                    product = PhysicalProduct(
+                        data["id"],
+                        data["name"],
+                        data["price"],
+                        data["stock"],
+                        data["weight"]
+                    )
+
+                elif product_type == "digital":
+                    product = DigitalProduct(
+                        data["id"],
+                        data["name"],
+                        data["price"],
+                        data["stock"],
+                        data["download_size"]
+                    )
+
+                else:
+                    print("Unknown product type. Skipping product.")
+                    continue
+
+                inventory.add_product(product)
+
+            except (KeyError, TypeError, ValueError, AttributeError):
+                print("Invalid product data. Skipping product.")
+
+        print("Inventory loaded successfully.")
+
+    except (OSError, json.JSONDecodeError):
+        print("Unable to load inventory.json.")
 
 
 # ============================================================
@@ -184,12 +243,11 @@ def display_menu():
 # ============================================================
 
 def main():
-    # Create an empty Inventory object
     inventory = Inventory()
 
-    # No JSON loading yet - this will be added in Phase 5
+    # Load previously saved physical and digital products
+    load_inventory(inventory)
 
-    # Keep displaying the menu until the user exits
     while True:
         display_menu()
         choice = input("Enter your choice (1-6): ")
@@ -198,7 +256,7 @@ def main():
         if choice == "1":
             inventory.display_all()
 
-        # OPTION 2: Add a new physical or digital product
+        # OPTION 2: Add a physical or digital product
         elif choice == "2":
             print("\nSelect Product Type:")
             print("1. Physical Product")
@@ -206,36 +264,29 @@ def main():
 
             product_type = input("Enter product type (1-2): ")
 
-            # Validate the selected product type
             if product_type not in ("1", "2"):
                 print("Invalid product type.")
                 continue
 
-            # Collect common product information
             product_id = input("Enter Product ID: ").strip()
             name = input("Enter Product Name: ").strip()
 
-            # Validate the product ID and name
             if not product_id or not name:
                 print("Product ID and name cannot be empty.")
                 continue
 
-            # Prevent duplicate product IDs
             if inventory.search_product(product_id) is not None:
                 print("Product ID already exists.")
                 continue
 
             try:
-                # Convert price and stock to the correct data types
                 price = float(input("Enter Product Price: "))
                 stock = int(input("Enter Stock Quantity: "))
 
-                # Ensure values are valid and non-negative
                 if not math.isfinite(price) or price < 0 or stock < 0:
                     print("Price and stock must be valid non-negative values.")
                     continue
 
-                # Create a PhysicalProduct object
                 if product_type == "1":
                     weight = float(input("Enter Weight (kg): "))
 
@@ -247,7 +298,6 @@ def main():
                         product_id, name, price, stock, weight
                     )
 
-                # Create a DigitalProduct object
                 else:
                     download_size = float(input("Enter Download Size (MB): "))
 
@@ -259,17 +309,14 @@ def main():
                         product_id, name, price, stock, download_size
                     )
 
-                # Add the newly created object to Inventory
                 inventory.add_product(new_product)
 
             except ValueError:
                 print("Invalid input. Please enter valid numeric values.")
 
-        # OPTION 3: Update stock quantity
+        # OPTION 3: Update stock
         elif choice == "3":
             product_id = input("Enter Product ID to update: ")
-
-            # Search for the existing product
             product = inventory.search_product(product_id)
 
             if product is not None:
@@ -282,11 +329,9 @@ def main():
             else:
                 print("Product not found.")
 
-        # OPTION 4: Search for a product
+        # OPTION 4: Search product
         elif choice == "4":
             product_id = input("Enter Product ID to search: ")
-
-            # Search the inventory for the product
             product = inventory.search_product(product_id)
 
             if product is not None:
@@ -294,22 +339,20 @@ def main():
                 product.display_information()
                 print(product.get_fulfilment_info())
 
-                # Only display shipping cost for physical products
                 if isinstance(product, CanBeShipped):
                     print(f"Shipping Cost: ${product.calculate_shipping_cost():.2f}")
             else:
                 print("Product not found.")
 
-        # OPTION 5: Save inventory (coming in Phase 5)
+        # OPTION 5: Save inventory
         elif choice == "5":
-            print("JSON saving will be implemented in Phase 5.")
+            save_inventory(inventory)
 
-        # OPTION 6: Exit the application
+        # OPTION 6: Exit
         elif choice == "6":
             print("Exiting Inventory Management System.")
             break
 
-        # Handle invalid menu choices
         else:
             print("Invalid choice. Please enter a number from 1 to 6.")
 
