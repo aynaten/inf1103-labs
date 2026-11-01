@@ -1,12 +1,15 @@
 
 import json
 import os
+from abc import ABC, abstractmethod
+
 
 # ============================================================
 # PRODUCT CLASS
 # ============================================================
 
-class Product:
+
+class Product(ABC):
     # Initialise a product with its ID, name, price and stock
     def __init__(self, product_id, name, price, stock):
         self.__product_id = product_id
@@ -42,6 +45,12 @@ class Product:
         print(f"Name: {self.__name}")
         print(f"Price: ${self.__price:.2f}")
         print(f"Stock: {self.__stock}")
+        
+    # Abstract method that all specialised products must implement
+    @abstractmethod
+    def get_fulfilment_info(self):
+        pass
+
 
 
 # ============================================================
@@ -61,6 +70,11 @@ class PhysicalProduct(Product):
     def display_information(self):
         super().display_information()
         print(f"Weight: {self.__weight} kg")
+        
+    # Explain how a physical product is delivered
+    def get_fulfilment_info(self):
+        return "This product requires physical shipping."
+
 
 
 # ============================================================
@@ -80,6 +94,11 @@ class DigitalProduct(Product):
     def display_information(self):
         super().display_information()
         print(f"Download Size: {self.__download_size} MB")
+    
+    # Explain how a digital product is delivered
+    def get_fulfilment_info(self):
+        return "This product is delivered digitally."
+
 
 # ============================================================
 # INVENTORY CLASS

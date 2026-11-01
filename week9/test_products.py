@@ -18,3 +18,21 @@ physical.display_information()
 
 print("\n=== Digital Product ===")
 digital.display_information()
+
+
+# ============================================================
+# PHASE 2 TEST - ABSTRACT CLASSES
+# ============================================================
+
+print("\n=== Fulfilment Information ===")
+print(physical.get_fulfilment_info())
+print(digital.get_fulfilment_info())
+
+# Check that Product cannot be created directly
+from inventory_oop import Product
+
+try:
+    generic = Product("P999", "Generic", 10.0, 5)
+except TypeError as error:
+    print("\nAbstract class test passed.")
+    print(error)
