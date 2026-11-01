@@ -5,9 +5,8 @@ from abc import ABC, abstractmethod
 
 
 # ============================================================
-# PRODUCT CLASS
+# PRODUCT CLASS (ABSTRACT)
 # ============================================================
-
 
 class Product(ABC):
     # Initialise a product with its ID, name, price and stock
@@ -39,18 +38,29 @@ class Product(ABC):
         else:
             print("Stock cannot be negative.")
 
-    # Display the product's information
+    # Display the product's common information
     def display_information(self):
         print(f"Product ID: {self.__product_id}")
         print(f"Name: {self.__name}")
         print(f"Price: ${self.__price:.2f}")
         print(f"Stock: {self.__stock}")
-        
-    # Abstract method that all specialised products must implement
+
+    # Abstract method that subclasses must implement
     @abstractmethod
     def get_fulfilment_info(self):
         pass
 
+
+# ============================================================
+# CAN BE SHIPPED INTERFACE
+# ============================================================
+
+class CanBeShipped(ABC):
+
+    # Abstract method for calculating shipping costs
+    @abstractmethod
+    def calculate_shipping_cost(self):
+        pass
 
 
 # ============================================================
@@ -63,18 +73,22 @@ class PhysicalProduct(Product):
         # Reuse the parent Product constructor
         super().__init__(product_id, name, price, stock)
 
-        # Store the additional weight attribute in kilograms
+        # Store weight in kilograms
         self.__weight = weight
 
-    # Override the parent method to display physical product details
+    # Override the parent method to display additional details
     def display_information(self):
         super().display_information()
         print(f"Weight: {self.__weight} kg")
-        
+
     # Explain how a physical product is delivered
     def get_fulfilment_info(self):
         return "This product requires physical shipping."
 
+    # Calculate shipping costs using $5 per kilogram
+    def calculate_shipping_cost(self):
+        shipping_rate = 5.00
+        return self.__weight * shipping_rate
 
 
 # ============================================================
@@ -87,17 +101,24 @@ class DigitalProduct(Product):
         # Reuse the parent Product constructor
         super().__init__(product_id, name, price, stock)
 
-        # Store the additional download size in megabytes
+        # Store download size in megabytes
         self.__download_size = download_size
 
-    # Override the parent method to display digital product details
+    # Override the parent method to display additional details
     def display_information(self):
         super().display_information()
         print(f"Download Size: {self.__download_size} MB")
-    
+
     # Explain how a digital product is delivered
     def get_fulfilment_info(self):
         return "This product is delivered digitally."
+
+
+# ============================================================
+# INTERFACE REGISTRATION
+# ============================================================
+
+CanBeShipped.register(PhysicalProduct)
 
 
 # ============================================================
@@ -138,7 +159,6 @@ class Inventory:
 
 # ============================================================
 # FILE HANDLING
-# Loads and saves inventory data using JSON
 # ============================================================
 
 def save_inventory(inventory):
@@ -149,7 +169,7 @@ def save_inventory(inventory):
     for product in inventory.get_products():
         products_data.append(product.to_dict())
 
-    # Open inventory.json in write mode and save the data
+    # Save data to inventory.json
     with open("inventory.json", "w") as file:
         json.dump(products_data, file, indent=4)
 
@@ -157,15 +177,16 @@ def save_inventory(inventory):
 
 
 def load_inventory(inventory):
-    # Check if the inventory file exists
+    # Check whether the inventory file exists
     if not os.path.exists("inventory.json"):
         return
 
-    # Open inventory.json and load the saved dictionaries
+    # Read the saved product dictionaries
     with open("inventory.json", "r") as file:
         products_data = json.load(file)
 
-    # Convert each dictionary back into a Product object
+    # Existing Week 8 loading logic
+    # This will be replaced in Phase 5
     for data in products_data:
         product = Product(
             data["id"],
@@ -174,7 +195,6 @@ def load_inventory(inventory):
             data["stock"]
         )
 
-        # Add the restored product to Inventory
         inventory.add_product(product)
 
     print("Inventory loaded successfully.")
@@ -216,28 +236,21 @@ def main():
 
         # OPTION 2: Add a new product
         elif choice == "2":
-            # Collect product details from the user
             product_id = input("Enter Product ID: ")
             name = input("Enter Product Name: ")
 
             try:
-                # Convert input into appropriate data types
                 price = float(input("Enter Product Price: "))
                 stock = int(input("Enter Stock Quantity: "))
 
-                # Check that the values are valid
                 if price < 0 or stock < 0:
                     print("Price and stock cannot be negative.")
 
-                # Prevent duplicate product IDs
                 elif inventory.search_product(product_id) is not None:
                     print("Product ID already exists.")
 
                 else:
-                    # Create a new Product object
                     new_product = Product(product_id, name, price, stock)
-
-                    # Add the Product object to Inventory
                     inventory.add_product(new_product)
 
             except ValueError:
@@ -246,8 +259,6 @@ def main():
         # OPTION 3: Update stock quantity
         elif choice == "3":
             product_id = input("Enter Product ID to update: ")
-
-            # Search for the existing product
             product = inventory.search_product(product_id)
 
             if product is not None:
@@ -262,20 +273,16 @@ def main():
 
         # OPTION 4: Search for a product
         elif choice == "4":
-            # Ask the user which product to search for
             product_id = input("Enter Product ID to search: ")
-
-            # Search the inventory for the product
             product = inventory.search_product(product_id)
 
-            # Display the product if found
             if product is not None:
                 print("\nProduct Found:")
                 product.display_information()
             else:
                 print("Product not found.")
 
-        # OPTION 5: Save inventory to JSON
+        # OPTION 5: Save inventory
         elif choice == "5":
             save_inventory(inventory)
 
