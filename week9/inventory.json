@@ -14,5 +14,21 @@
         "stock": 100,
         "type": "digital",
         "download_size": 500.0
+    },
+    {
+        "id": "P005",
+        "name": "test",
+        "price": 10.0,
+        "stock": 10,
+        "type": "physical",
+        "weight": 67.0
+    },
+    {
+        "id": "D005",
+        "name": "test2",
+        "price": 25.0,
+        "stock": 5,
+        "type": "digital",
+        "download_size": 67.0
     }
 ]

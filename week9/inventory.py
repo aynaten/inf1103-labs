@@ -1,0 +1,41 @@
+
+from can_be_shipped import CanBeShipped
+
+
+# ============================================================
+# INVENTORY CLASS
+# ============================================================
+
+class Inventory:
+    def __init__(self):
+        self.__products = []
+
+    def get_products(self):
+        return self.__products
+
+    def add_product(self, product):
+        if self.search_product(product.get_product_id()) is not None:
+            print("Product ID already exists.")
+            return
+
+        self.__products.append(product)
+        print("Product added successfully.")
+
+    def search_product(self, product_id):
+        for product in self.__products:
+            if product.get_product_id() == product_id:
+                return product
+        return None
+
+    def display_all(self):
+        if not self.__products:
+            print("Inventory is empty.")
+            return
+
+        for product in self.__products:
+            print("--------------------")
+            product.display_information()
+            print(product.get_fulfilment_info())
+
+            if isinstance(product, CanBeShipped):
+                print(f"Shipping Cost: ${product.calculate_shipping_cost():.2f}")
