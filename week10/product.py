@@ -15,11 +15,11 @@ class Product(ABC):
         price: float,
         stock: int,
         supplier: Supplier
-    ):
-        self.__product_id = product_id
-        self.__name = name
-        self.__price = price
-        self.__stock = stock
+    ) -> None:
+        self.__product_id: str = product_id
+        self.__name: str = name
+        self.__price: float = price
+        self.__stock: int = stock
         self.__supplier: Supplier = supplier
 
     def get_product_id(self) -> str:
@@ -36,7 +36,8 @@ class Product(ABC):
             "id": self.__product_id,
             "name": self.__name,
             "price": self.__price,
-            "stock": self.__stock
+            "stock": self.__stock,
+            "supplier": self.__supplier.to_dict()
         }
 
     def update_stock(self, quantity: int) -> None:

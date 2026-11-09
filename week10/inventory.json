@@ -1,0 +1,31 @@
+{
+    "products": [
+        {
+            "id": "P001",
+            "name": "Laptop",
+            "price": 1200.0,
+            "stock": 10,
+            "supplier": {
+                "supplier_id": "S001",
+                "name": "Tech Supplies",
+                "contact_email": "test.email.com"
+            },
+            "type": "physical",
+            "weight": 4.0
+        },
+        {
+            "id": "P002",
+            "name": "test",
+            "price": 10.0,
+            "stock": 10,
+            "supplier": {
+                "supplier_id": "S003",
+                "name": "test",
+                "contact_email": "test2@gmail.com"
+            },
+            "type": "physical",
+            "weight": 4.0
+        }
+    ],
+    "orders": []
+}

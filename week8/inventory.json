@@ -4,5 +4,11 @@
         "name": "Keyboard",
         "price": 50.0,
         "stock": 10
+    },
+    {
+        "id": "P004",
+        "name": "random",
+        "price": 10.0,
+        "stock": 2372
     }
 ]

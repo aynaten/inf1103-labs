@@ -21,3 +21,10 @@ class Supplier:
         print(f"Supplier ID: {self.__supplier_id}")
         print(f"Supplier Name: {self.__name}")
         print(f"Contact Email: {self.__contact_email}")
+
+    def to_dict(self) -> dict:
+        return {
+            "supplier_id": self.__supplier_id,
+            "name": self.__name,
+            "contact_email": self.__contact_email
+        }

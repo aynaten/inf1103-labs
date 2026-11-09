@@ -1,75 +1,150 @@
 
 import json
-import os
+from pathlib import Path
 
+from supplier import Supplier
 from physical_product import PhysicalProduct
 from digital_product import DigitalProduct
+from inventory import Inventory
+from order import Order
 
 
 # ============================================================
-# FILE HANDLING
+# FILE CONFIGURATION
 # ============================================================
 
-def save_inventory(inventory):
-    products_data = []
-
-    # Convert each product into a dictionary
-    for product in inventory.get_products():
-        products_data.append(product.to_dict())
-
-    # Save product data into JSON
-    with open("inventory.json", "w") as file:
-        json.dump(products_data, file, indent=4)
-
-    print("Inventory saved successfully.")
+FILE_NAME = Path("inventory.json")
 
 
-def load_inventory(inventory):
-    # Check whether the file exists
-    if not os.path.exists("inventory.json"):
+# ============================================================
+# SAVE INVENTORY AND ORDERS
+# ============================================================
+
+def save_inventory(
+    inventory: Inventory,
+    orders: list[Order]
+) -> None:
+    products_data = [
+        product.to_dict()
+        for product in inventory.get_products()
+    ]
+
+    orders_data = []
+
+    for order in orders:
+        order_data = {
+            "order_id": order.order_id,
+            "order_lines": []
+        }
+
+        for line in order.get_order_lines():
+            order_data["order_lines"].append({
+                "product_id": line.product.get_product_id(),
+                "quantity": line.quantity
+            })
+
+        orders_data.append(order_data)
+
+    data = {
+        "products": products_data,
+        "orders": orders_data
+    }
+
+    try:
+        with FILE_NAME.open("w", encoding="utf-8") as file:
+            json.dump(data, file, indent=4)
+
+        print("Inventory and orders saved successfully.")
+
+    except OSError as error:
+        print(f"Error saving file: {error}")
+
+
+# ============================================================
+# LOAD INVENTORY AND ORDERS
+# ============================================================
+
+def load_inventory(
+    inventory: Inventory,
+    orders: list[Order],
+    suppliers: dict[str, Supplier]
+) -> None:
+    if not FILE_NAME.exists():
+        print("No saved inventory found. Starting with an empty inventory.")
         return
 
     try:
-        with open("inventory.json", "r") as file:
-            products_data = json.load(file)
+        with FILE_NAME.open("r", encoding="utf-8") as file:
+            data = json.load(file)
 
-        if not isinstance(products_data, list):
-            print("Invalid inventory file format.")
+        if not isinstance(data, dict):
+            print("Unsupported inventory file format.")
             return
 
-        # Restore each saved product based on its type
-        for data in products_data:
-            try:
-                product_type = data.get("type")
+        products_data = data.get("products", [])
+        orders_data = data.get("orders", [])
 
-                if product_type == "physical":
-                    product = PhysicalProduct(
-                        data["id"],
-                        data["name"],
-                        data["price"],
-                        data["stock"],
-                        data["weight"]
+        for item in products_data:
+            supplier_data = item["supplier"]
+            supplier_id = supplier_data["supplier_id"]
+
+            if supplier_id not in suppliers:
+                suppliers[supplier_id] = Supplier(
+                    supplier_id,
+                    supplier_data["name"],
+                    supplier_data["contact_email"]
+                )
+
+            supplier = suppliers[supplier_id]
+
+            if item["type"] == "physical":
+                product = PhysicalProduct(
+                    item["id"],
+                    item["name"],
+                    item["price"],
+                    item["stock"],
+                    item["weight"],
+                    supplier
+                )
+
+            elif item["type"] == "digital":
+                product = DigitalProduct(
+                    item["id"],
+                    item["name"],
+                    item["price"],
+                    item["stock"],
+                    item["download_size"],
+                    supplier
+                )
+
+            else:
+                print(f"Unknown product type: {item['type']}")
+                continue
+
+            inventory.add_product(product)
+
+        for order_data in orders_data:
+            order = Order(order_data["order_id"])
+
+            for line_data in order_data["order_lines"]:
+                product = inventory.find_product(
+                    line_data["product_id"]
+                )
+
+                if product is not None:
+                    order.add_order_line(
+                        product,
+                        line_data["quantity"]
                     )
-
-                elif product_type == "digital":
-                    product = DigitalProduct(
-                        data["id"],
-                        data["name"],
-                        data["price"],
-                        data["stock"],
-                        data["download_size"]
-                    )
-
                 else:
-                    print("Unknown product type. Skipping product.")
-                    continue
+                    print(
+                        "Skipping missing product in order: "
+                        f"{line_data['product_id']}"
+                    )
 
-                inventory.add_product(product)
+            orders.append(order)
 
-            except (KeyError, TypeError, ValueError, AttributeError):
-                print("Invalid product data. Skipping product.")
+        print("Inventory and orders loaded successfully.")
 
-        print("Inventory loaded successfully.")
-
-    except (OSError, json.JSONDecodeError):
-        print("Unable to load inventory.json.")
+    except (OSError, json.JSONDecodeError, KeyError, TypeError, ValueError) as error:
+        print(f"Error loading inventory: {error}")
