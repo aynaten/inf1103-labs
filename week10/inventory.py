@@ -8,7 +8,7 @@ from can_be_shipped import CanBeShipped
 # ============================================================
 
 class Inventory:
-    def __init__(self):
+    def __init__(self) -> None:
         self.__products: list[Product] = []
 
     def get_products(self) -> list[Product]:
