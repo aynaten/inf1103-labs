@@ -3,8 +3,7 @@ import json
 from pathlib import Path
 
 from supplier import Supplier
-from physical_product import PhysicalProduct
-from digital_product import DigitalProduct
+from product_factory import ProductFactory
 from inventory import Inventory
 from order import Order
 
@@ -97,29 +96,16 @@ def load_inventory(
 
             supplier = suppliers[supplier_id]
 
-            if item["type"] == "physical":
-                product = PhysicalProduct(
-                    item["id"],
-                    item["name"],
-                    item["price"],
-                    item["stock"],
-                    item["weight"],
-                    supplier
-                )
-
-            elif item["type"] == "digital":
-                product = DigitalProduct(
-                    item["id"],
-                    item["name"],
-                    item["price"],
-                    item["stock"],
-                    item["download_size"],
-                    supplier
-                )
-
-            else:
-                print(f"Unknown product type: {item['type']}")
-                continue
+            product = ProductFactory.create(
+                product_type=item["type"],
+                product_id=item["id"],
+                name=item["name"],
+                price=item["price"],
+                stock=item["stock"],
+                supplier=supplier,
+                weight=item.get("weight", 0.0),
+                download_size=item.get("download_size", 0.0)
+            )
 
             inventory.add_product(product)
 

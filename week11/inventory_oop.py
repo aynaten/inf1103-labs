@@ -2,8 +2,7 @@
 import math
 
 from supplier import Supplier
-from physical_product import PhysicalProduct
-from digital_product import DigitalProduct
+from product_factory import ProductFactory
 from inventory import Inventory
 from order import Order
 from file_handler import save_inventory, load_inventory
@@ -105,9 +104,15 @@ def add_product(
     print("\n1. Physical Product")
     print("2. Digital Product")
 
-    product_type = input("Select Product Type: ").strip()
+    product_choice = input("Select Product Type: ").strip()
 
-    if product_type not in ("1", "2"):
+    if product_choice == "1":
+        product_type = "physical"
+
+    elif product_choice == "2":
+        product_type = "digital"
+
+    else:
         print("Invalid product type.")
         return
 
@@ -129,19 +134,19 @@ def add_product(
 
     price = get_non_negative_float("Price: $")
     stock = get_non_negative_integer("Stock Quantity: ")
-
     supplier = choose_supplier(suppliers)
 
-    if product_type == "1":
+    if product_type == "physical":
         weight = get_non_negative_float("Weight (kg): ")
 
-        product = PhysicalProduct(
+        product = ProductFactory.create(
+            product_type,
             product_id,
             name,
             price,
             stock,
-            weight,
-            supplier
+            supplier,
+            weight=weight
         )
 
     else:
@@ -149,13 +154,14 @@ def add_product(
             "Download Size (MB): "
         )
 
-        product = DigitalProduct(
+        product = ProductFactory.create(
+            product_type,
             product_id,
             name,
             price,
             stock,
-            download_size,
-            supplier
+            supplier,
+            download_size=download_size
         )
 
     inventory.add_product(product)
