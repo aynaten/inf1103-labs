@@ -1,4 +1,5 @@
 
+import math
 from abc import ABC, abstractmethod
 from supplier import Supplier
 
@@ -16,6 +17,12 @@ class Product(ABC):
         stock: int,
         supplier: Supplier
     ) -> None:
+        if not math.isfinite(price) or price <= 0:
+            raise ValueError("Product price must be greater than zero.")
+
+        if not isinstance(stock, int) or isinstance(stock, bool) or stock < 0:
+            raise ValueError("Stock quantity must be a non-negative integer.")
+
         self.__product_id: str = product_id
         self.__name: str = name
         self.__price: float = price
@@ -41,11 +48,11 @@ class Product(ABC):
         }
 
     def update_stock(self, quantity: int) -> None:
-        if quantity >= 0:
-            self.__stock = quantity
-            print("Stock updated successfully.")
-        else:
-            print("Stock cannot be negative.")
+        if not isinstance(quantity, int) or isinstance(quantity, bool) or quantity < 0:
+            raise ValueError("Stock quantity must be a non-negative integer.")
+
+        self.__stock = quantity
+        print("Stock updated successfully.")
 
     def display_information(self) -> None:
         print(f"Product ID: {self.__product_id}")
