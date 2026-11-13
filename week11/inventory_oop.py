@@ -1,11 +1,12 @@
 
-import math
-
 from supplier import Supplier
 from product_factory import ProductFactory
 from inventory import Inventory
 from order import Order
 from file_handler import save_inventory, load_inventory
+from input_helpers import get_positive_float
+
+import math
 
 
 # ============================================================
@@ -132,20 +133,21 @@ def add_product(
         print("Product name cannot be empty.")
         return
 
-    price = get_non_negative_float("Price: $")
+    price = get_positive_float("Price: $")
     stock = get_non_negative_integer("Stock Quantity: ")
+
     supplier = choose_supplier(suppliers)
 
     if product_type == "physical":
         weight = get_non_negative_float("Weight (kg): ")
 
         product = ProductFactory.create(
-            product_type,
-            product_id,
-            name,
-            price,
-            stock,
-            supplier,
+            product_type=product_type,
+            product_id=product_id,
+            name=name,
+            price=price,
+            stock=stock,
+            supplier=supplier,
             weight=weight
         )
 
@@ -155,12 +157,12 @@ def add_product(
         )
 
         product = ProductFactory.create(
-            product_type,
-            product_id,
-            name,
-            price,
-            stock,
-            supplier,
+            product_type=product_type,
+            product_id=product_id,
+            name=name,
+            price=price,
+            stock=stock,
+            supplier=supplier,
             download_size=download_size
         )
 
